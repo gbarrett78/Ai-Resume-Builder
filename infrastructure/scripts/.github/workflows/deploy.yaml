@@ -1,0 +1,54 @@
+name: Deploy Resume 
+on:
+  pull_request: 
+    branches: [ main ]
+  push: 
+    branches: [ main ]
+
+jobs: 
+    deploy:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Configure AWS Credentials 
+          uses: aws-actions/configure-aws-credntials@v3
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}
+
+        - name: Deploy Infrastructure
+          uses: aws-actions/aws-cloudformation-github-deploy@v1
+          with:
+            name: ResumeStack
+            template: infrastructure/scripts/cloudformation.yaml 
+            capabilities: CAPABILITIES_NAMED_IAM
+            no-fail-on-empty-changeset: "1"
+
+        - name: Set up Python 
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.11'
+
+        - name: Install Python dependencies
+          run: | 
+            python -m pip install --upgrade pip
+            pip install boto3
+
+        # --- BETA LOGIC (Pull Request) ---
+        - name: Build & Analyze (Beta)
+          if: github.event_name == 'pull_request'
+          env:
+            TABLE_NAME: DeploymentTracking
+          run: |
+            python infrastructure/scripts/process_resume.py
+            test -f  index.html
+            aws s3 cp index.html s3://${{ secrets.BUCKET_NAME }}/beta/index.html
+            # Script should also write to DynamoDB DeploymentTracking & ResumeAnalytics 
+
+        # --- Prod LOGIC (Merge to Main) ---
+        - name: Promote to Prod
+          if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+          run: |
+            aws s3 cp s3://${{ secrets.BUCKET_NAME }}/beta/index.html s3://${{ secrets.BUCKET_NAME }}/prod/index.html
+            # Update DeploymentTracking status to 'prod' via CLI or Script
