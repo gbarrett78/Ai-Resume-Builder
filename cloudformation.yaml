@@ -1,18 +1,10 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: Cloud Resume Challenge - S3 website, DynamoDB visitor counter, GitHub Actions OIDC role
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Cloud Resume Challenge - S3 static website + DynamoDB visitor counter
 
 Parameters:
-  GitHubOrgAndRepo:
-    Type: String
-    Description: "e.g. gbarret78/cloud-resume"
-
   WebsiteBucketName:
     Type: String
-    Description: "Globally unique S3 bucket name for resume website"
-
-  GitHubOIDCProviderArn:
-    Type: String
-    Description: "arn:aws:iam::<account-id>:oidc-provider/token.actions.githubusercontent.com"
+    Description: Globally unique S3 bucket name for resume website
 
 Resources:
   WebsiteBucket:
@@ -38,14 +30,16 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          - Sid: PublicRead
+          - Sid: PublicReadGetObject
             Effect: Allow
             Principal: "*"
-            Action: "s3:GetObject"
+            Action:
+              - "s3:GetObject"
             Resource: !Sub "arn:aws:s3:::${WebsiteBucketName}/*"
 
   VisitorTable:
     Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
     Properties:
       TableName: cloud-resume-visitors
       BillingMode: PAY_PER_REQUEST
@@ -56,52 +50,19 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
-  GitHubActionsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: CloudResumeGitHubActionsRole
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Federated: !Ref GitHubOIDCProviderArn
-            Action: "sts:AssumeRoleWithWebIdentity"
-            Condition:
-              StringEquals:
-                "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
-              StringLike:
-                "token.actions.githubusercontent.com:sub": !Sub "repo:${GitHubOrgAndRepo}:*"
-      Policies:
-        - PolicyName: CloudResumeDeployPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "s3:PutObject"
-                  - "s3:PutObjectAcl"
-                  - "s3:DeleteObject"
-                Resource: !Sub "arn:aws:s3:::${WebsiteBucketName}/*"
-
-              - Effect: Allow
-                Action:
-                  - "s3:ListBucket"
-                Resource: !Sub "arn:aws:s3:::${WebsiteBucketName}"
-
-              - Effect: Allow
-                Action:
-                  - "dynamodb:GetItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:PutItem"
-                Resource: !GetAtt VisitorTable.Arn
-
 Outputs:
   WebsiteBucketName:
     Value: !Ref WebsiteBucketName
 
+  WebsiteUrl:
+    Description: S3 static website endpoint (HTTP)
+    Value: !GetAtt WebsiteBucket.WebsiteURL
+
   VisitorTableName:
     Value: !Ref VisitorTable
 
-  GitHubActionsRoleArn:
-    Value: !GetAtt GitHubActionsRole.Arn
+  VisitorTableArn:
+    Value: !GetAtt VisitorTable.Arn
+
+
+  
