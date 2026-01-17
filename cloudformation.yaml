@@ -50,44 +50,36 @@ Resources:
         - AttributeName: id
           KeyType: HASH
 
-  DeploymentTracking: 
+  DeploymentTracking:
     Type: AWS::DynamoDB::Table
-    DeletionPolicy: Retain 
+    DeletionPolicy: Retain
     Properties:
       TableName: DeploymentTracking
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: commitSha
-        - AttributeType: S
-        - AttributeName: environment 
-        - AttributeType: S
+          AttributeType: S
+        - AttributeName: environment
+          AttributeType: S
       KeySchema:
-       - AttributeName: commitSha
-         KeyType: HASH
-       - AttributeName: environment
-         KeyType: Range
+        - AttributeName: commitSha
+          KeyType: HASH
+        - AttributeName: environment
+          KeyType: RANGE
 
   ResumeAnalytics:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Retain
     Properties:
-      TableName: ResumeAnalytics 
+      TableName: ResumeAnalytics
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
-        - AttributeType: S
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
 
-  DeploymentTrackingName:
-    Value: !Ref DeploymentTracking
-
-  ResumeAnalytics:
-    Value: !Ref ResumeAnalytics
-
- 
-  
 Outputs:
   WebsiteBucketName:
     Value: !Ref WebsiteBucketName
@@ -103,8 +95,7 @@ Outputs:
     Value: !GetAtt VisitorTable.Arn
 
   DeploymentTrackingName:
-    Value: !Ref DeploymentTracking 
+    Value: !Ref DeploymentTracking
 
   ResumeAnalyticsName:
     Value: !Ref ResumeAnalytics
-  
