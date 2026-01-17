@@ -87,8 +87,6 @@ Resources:
     Value: !Ref ResumeAnalytics
 
  
-
-
   
 Outputs:
   WebsiteBucketName:
@@ -104,5 +102,9 @@ Outputs:
   VisitorTableArn:
     Value: !GetAtt VisitorTable.Arn
 
+  DeploymentTrackingName:
+    Value: !Ref DeploymentTracking 
 
+  ResumeAnalyticsName:
+    Value: !Ref ResumeAnalytics
   
