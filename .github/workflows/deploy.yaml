@@ -47,12 +47,12 @@ jobs:
           run: |
             python infrastructure/scripts/process_resume.py
             test -f  index.html
-            aws s3 cp index.html s3://${{ secrets.BUCKET_NAME }}/beta/index.html
+            aws s3 cp index.html s3://granville-cloudresume-jan2026/beta/index.html
             # Script should also write to DynamoDB DeploymentTracking & ResumeAnalytics 
 
         # --- Prod LOGIC (Merge to Main) ---
         - name: Promote to Prod
           if: github.event_name == 'push' && github.ref == 'refs/heads/main'
           run: |
-            aws s3 cp s3://${{ secrets.BUCKET_NAME }}/beta/index.html s3://${{ secrets.BUCKET_NAME }}/prod/index.html
+            aws s3 cp s3://granville-cloudresume-jan2026/beta/index.html s3://granville-cloudresume-jan2026/prod/index.html
             # Update DeploymentTracking status to 'prod' via CLI or Script
