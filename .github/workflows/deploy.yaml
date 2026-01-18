@@ -57,5 +57,9 @@ jobs:
         - name: Promote to Prod
           if: github.event_name == 'push' && github.ref == 'refs/heads/main'
           run: |
-            aws s3 cp s3://granville-cloudresume-jan2026/beta/index.html s3://granville-cloudresume-jan2026cl/prod/index.html
-            # Update DeploymentTracking status to 'prod' via CLI or Script
+            if aws s3 ls s3://granville-cloudresume-jan2026/beta/index.html 2>/dev/null; then
+              aws s3 cp s3://granville-cloudresume-jan2026/beta/index.html s3://granville-cloudresume-jan2026/prod/index.html
+              echo "✓ Promoted beta to prod"
+            else
+              echo "⚠ No beta/index.html found - skipping promotion"
+            fi
