@@ -51,4 +51,3 @@ Senior Systems Administrator with 7+ years of enterprise infrastructure experien
 - Completing 17+ hands-on cloud infrastructure projects
 - Building automated CI/CD pipelines
 - Creating technical content with basketball analogies ("From the Court to the Cloud")
-EOF
