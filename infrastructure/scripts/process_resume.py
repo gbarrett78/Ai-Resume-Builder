@@ -58,7 +58,14 @@ Resume:
 Return ONLY valid JSON, no explanation."""
         }]
     )
-    return json.loads(message.content[0].text)
+    response_text = message.content[0].text.strip()
+    if response_text.startswith('```'):
+        # Remove markdown code fences
+        response_text = response_text.split('```')[1]
+        if response_text.startswith('json'):
+            response_text = response_text[4:]
+        response_text = response_text.strip()
+    return json.loads(response_text)
 
 def write_deployment_tracking(commit_sha, environment, status, s3_url):
     """Write deployment metadata to DynamoDB"""
